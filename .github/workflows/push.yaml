@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 3
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -18,14 +19,15 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up C compiler
-      shell: "bash"
+      shell: bash
       run: |
         if [ "${{ runner.os }}" == "Windows" ]; then
           choco install mingw
-        else
-          sudo apt-get install gcc || brew install gcc
+        elif [ "${{ runner.os }}" != "macOS" ]; then
+          sudo apt-get install -y gcc
         fi
 
     - name: Compile and execute tests.
-      run: bash ./build test
+      shell: bash
+      run: ./build test
 

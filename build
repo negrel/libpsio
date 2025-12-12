@@ -23,7 +23,7 @@ execute() {
 case "${1:-test}" in
 	test)
 		cc -I. test.c -o test
-		execute timeout 3s ./test
+		execute ./test
 		;;
 
 	bench)
