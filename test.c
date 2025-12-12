@@ -1,5 +1,8 @@
 #define _POSIX_C_SOURCE 200112L
+
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 #define LIBPSIO_IMPLEMENTATION
@@ -16,27 +19,43 @@
 		}                                                              \
 	} while (0)
 
+static uint64_t instant_nanos(void)
+{
+#ifdef _WIN32
+	LARGE_INTEGER Time;
+	QueryPerformanceCounter(&Time);
+
+	static LARGE_INTEGER Frequency = {0};
+	if (Frequency.QuadPart == 0) {
+		QueryPerformanceFrequency(&Frequency);
+	}
+
+	uint64_t Secs = Time.QuadPart / Frequency.QuadPart;
+	uint64_t Nanos = Time.QuadPart % Frequency.QuadPart *
+			 NOB_NANOS_PER_SEC / Frequency.QuadPart;
+	return 1000 * 1000 * 100 * Secs + Nanos;
+#else
+	struct timespec ts;
+	int err = clock_gettime(CLOCK_MONOTONIC, &ts);
+	if (err)
+		abort();
+
+	return 1000 * 1000 * 1000 * (uint64_t)ts.tv_sec + (uint64_t)ts.tv_nsec;
+#endif // _WIN32
+}
+
 static int test_sleep_ms(void)
 {
-	int err;
-	struct timespec start, end;
-	time_t diff_ms;
+	uint64_t start, end;
 
-	err = clock_gettime(CLOCK_MONOTONIC, &start);
-	if (err)
-		return err;
+	start = instant_nanos();
 
 	// Sleep.
 	psio_sleep_ms(100);
 
-	err = clock_gettime(CLOCK_MONOTONIC, &end);
-	if (err)
-		return err;
+	end = instant_nanos();
 
-	diff_ms = (end.tv_sec - start.tv_sec) * 1000;
-	diff_ms += (end.tv_nsec - start.tv_nsec) / (1000 * 1000);
-
-	if (diff_ms < 100)
+	if (end - start < 100 * 1000 * 1000)
 		return 1;
 
 	return 0;

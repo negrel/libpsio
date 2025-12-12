@@ -55,6 +55,7 @@ int psio_sleep_ms(uint32_t ms);
 #include <errno.h>
 #include <time.h>
 #elif defined(LIBPSIO_WIN)
+#include <synchapi.h>
 #endif /* LIBPSIO_POSIX */
 
 int psio_sleep_ms(uint32_t ms)
@@ -79,6 +80,8 @@ int psio_sleep_ms(uint32_t ms)
 		}
 	}
 #elif defined(LIBPSIO_WIN)
+	Sleep(ms);
+	return 0;
 #else
 #error UNSUPPORTED_PLATFORM
 #endif /* LIBPSIO_POSIX */
