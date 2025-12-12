@@ -1,0 +1,31 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up C compiler
+      shell: "bash"
+      run: |
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          choco install mingw
+        else
+          sudo apt-get install gcc || brew install gcc
+        fi
+
+    - name: Compile and execute tests.
+      run: bash ./build test
+
