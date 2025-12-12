@@ -68,7 +68,7 @@ int psio_sleep_ms(uint32_t ms)
 	rq.tv_nsec = (ms % 1000) * 1000 * 1000;
 	while (1) {
 		rm = (struct timespec){0};
-		err = clock_nanosleep(CLOCK_MONOTONIC, 0, &rq, &rm);
+		err = nanosleep(&rq, &rm);
 		switch (err) {
 		case 0:
 			return 0;
