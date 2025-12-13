@@ -1,12 +1,13 @@
-#define _POSIX_C_SOURCE 200112L
-
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 
-#define LIBPSIO_IMPLEMENTATION
+#ifndef PSIO_IMPLEMENTATION
+#define PSIO_IMPLEMENTATION
+#endif
 #include "libpsio.h"
+
+#ifdef _WIN32
+#endif
 
 #define TRY(fn)                                                                \
 	do {                                                                   \
@@ -19,41 +20,21 @@
 		}                                                              \
 	} while (0)
 
-static uint64_t instant_nanos(void)
-{
-#ifdef _WIN32
-	LARGE_INTEGER Time;
-	QueryPerformanceCounter(&Time);
-
-	static LARGE_INTEGER Frequency = {0};
-	if (Frequency.QuadPart == 0) {
-		QueryPerformanceFrequency(&Frequency);
-	}
-
-	uint64_t Secs = Time.QuadPart / Frequency.QuadPart;
-	uint64_t Nanos = Time.QuadPart % Frequency.QuadPart *
-			 NOB_NANOS_PER_SEC / Frequency.QuadPart;
-	return 1000 * 1000 * 100 * Secs + Nanos;
-#else
-	struct timespec ts;
-	int err = clock_gettime(CLOCK_MONOTONIC, &ts);
-	if (err)
-		abort();
-
-	return 1000 * 1000 * 1000 * (uint64_t)ts.tv_sec + (uint64_t)ts.tv_nsec;
-#endif // _WIN32
-}
-
 static int test_sleep_ms(void)
 {
+	int err;
 	uint64_t start, end;
 
-	start = instant_nanos();
+	err = psio_instant_now(&start);
+	if (err)
+		return err;
 
 	// Sleep.
 	psio_sleep_ms(100);
 
-	end = instant_nanos();
+	err = psio_instant_now(&end);
+	if (err)
+		return err;
 
 	if (end - start < 100 * 1000 * 1000)
 		return 1;

@@ -22,7 +22,8 @@ execute() {
 
 case "${1:-test}" in
 	test)
-		cc -I. test.c -o test
+		cc -I. -D_POSIX_C_SOURCE=200112L test.c -o test
+
 		execute ./test
 		;;
 
@@ -32,7 +33,7 @@ case "${1:-test}" in
 		;;
 
 	compile_flags.txt)
-		echo $CFLAGS -Isrc/ -DLIBPSIO_IMPLEMENTATION -D_POSIX_C_SOURCE=200112L \
+		echo $CFLAGS -Isrc/ -DPSIO_IMPLEMENTATION -D_POSIX_C_SOURCE=200112L \
 			| tr ' ' '\n' > compile_flags.txt
 		;;
 

@@ -34,12 +34,23 @@
 	"compliant systems."
 
 #ifdef _WIN32
-#define LIBPSIO_WIN
+#define PSIO_WIN
 #else
 #if defined(__unix__) || defined(__APPLE__) || defined(__POSIX__)
-#define LIBPSIO_POSIX
+#define PSIO_POSIX
 #endif /* defined(__unix__) || defined(__APPLE__) || defined(__POSIX__) */
 #endif /* _WIN32 */
+
+#define PSIO_NANOS_PER_SEC (1000 * 1000 * 1000)
+
+/**
+ * Returns a measurement (in nanoseconds) of a monotonically non decreasing
+ * clock. It only allows measuring the duration between two instants (or
+ * comparing two instants).
+ *
+ * A negative errno is returned in case of error.
+ */
+int psio_instant_now(uint64_t *now);
 
 /**
  * Causes the calling thread to sleep until the number of real-time
@@ -49,18 +60,57 @@
  */
 int psio_sleep_ms(uint32_t ms);
 
-#ifdef LIBPSIO_IMPLEMENTATION
+#ifdef PSIO_IMPLEMENTATION
 
-#ifdef LIBPSIO_POSIX
 #include <errno.h>
+
+#ifdef PSIO_POSIX
 #include <time.h>
-#elif defined(LIBPSIO_WIN)
+#elif defined(PSIO_WIN)
+#include <windows.h>
+
+#include <profileapi.h>
 #include <synchapi.h>
-#endif /* LIBPSIO_POSIX */
+#endif /* PSIO_POSIX */
+
+int psio_instant_now(uint64_t *now)
+{
+#ifdef PSIO_POSIX
+	int err;
+	struct timespec tp;
+	err = clock_gettime(CLOCK_MONOTONIC, &tp);
+	if (err)
+		return -errno;
+	*now = (uint64_t)tp.tv_sec * PSIO_NANOS_PER_SEC;
+	*now += (uint64_t)tp.tv_nsec;
+	return 0;
+#elif defined(PSIO_WIN)
+	LARGE_INTEGER Time, Frequency;
+	uint64_t time, frequency;
+
+	if (!QueryPerformanceCounter(&Time))
+		return -ENOTSUP;
+	time = (uint64_t)Time.QuadPart;
+
+	if (!QueryPerformanceFrequency(&Frequency))
+		return -ENOTSUP;
+	frequency = (uint64_t)Frequency.QuadPart;
+
+	if (frequency == 0)
+		return -ERANGE;
+
+	*now = time / frequency * PSIO_NANOS_PER_SEC;
+	*now += time % frequency * PSIO_NANOS_PER_SEC / frequency;
+
+	return 0;
+#else
+#error UNSUPPORTED_PLATFORM
+#endif
+}
 
 int psio_sleep_ms(uint32_t ms)
 {
-#ifdef LIBPSIO_POSIX
+#ifdef PSIO_POSIX
 	int err;
 	struct timespec rq, rm;
 
@@ -79,15 +129,15 @@ int psio_sleep_ms(uint32_t ms)
 			return -err;
 		}
 	}
-#elif defined(LIBPSIO_WIN)
+#elif defined(PSIO_WIN)
 	Sleep(ms);
 	return 0;
 #else
 #error UNSUPPORTED_PLATFORM
-#endif /* LIBPSIO_POSIX */
+#endif /* PSIO_POSIX */
 }
 
-#endif /* LIBPSIO_IMPLEMENTATION */
+#endif /* PSIO_IMPLEMENTATION */
 
 #undef UNSUPPORTED_PLATFORM
 
