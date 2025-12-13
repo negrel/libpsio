@@ -1,5 +1,5 @@
 /**
- * Portable synchronous I/O library.
+ * Cross platform I/O library.
  *
  * MIT License
  *
@@ -22,10 +22,10 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- **/
+ */
 
-#ifndef LIBPSIO_H_INCLUDE
-#define LIBPSIO_H_INCLUDE
+#ifndef LIBXIO_H_INCLUDE
+#define LIBXIO_H_INCLUDE
 
 #include <stdint.h>
 
@@ -34,14 +34,14 @@
 	"compliant systems."
 
 #ifdef _WIN32
-#define PSIO_WIN
+#define XIO_WIN
 #else
 #if defined(__unix__) || defined(__APPLE__) || defined(__POSIX__)
-#define PSIO_POSIX
+#define XIO_POSIX
 #endif /* defined(__unix__) || defined(__APPLE__) || defined(__POSIX__) */
 #endif /* _WIN32 */
 
-#define PSIO_NANOS_PER_SEC (1000 * 1000 * 1000)
+#define XIO_NANOS_PER_SEC (1000 * 1000 * 1000)
 
 /**
  * Returns a measurement (in nanoseconds) of a monotonically non decreasing
@@ -50,7 +50,7 @@
  *
  * A negative errno is returned in case of error.
  */
-int psio_instant_now(uint64_t *now);
+int xio_instant_now(uint64_t *now);
 
 /**
  * Causes the calling thread to sleep until the number of real-time
@@ -58,33 +58,33 @@ int psio_instant_now(uint64_t *now);
  *
  * A negative errno is returned in case of error.
  */
-int psio_sleep_ms(uint32_t ms);
+int xio_sleep_ms(uint32_t ms);
 
-#ifdef PSIO_IMPLEMENTATION
+#ifdef XIO_IMPLEMENTATION
 
 #include <errno.h>
 
-#ifdef PSIO_POSIX
+#ifdef XIO_POSIX
 #include <time.h>
-#elif defined(PSIO_WIN)
+#elif defined(XIO_WIN)
 #include <windows.h>
 
 #include <profileapi.h>
 #include <synchapi.h>
-#endif /* PSIO_POSIX */
+#endif /* XIO_POSIX */
 
-int psio_instant_now(uint64_t *now)
+int xio_instant_now(uint64_t *now)
 {
-#ifdef PSIO_POSIX
+#ifdef XIO_POSIX
 	int err;
 	struct timespec tp;
 	err = clock_gettime(CLOCK_MONOTONIC, &tp);
 	if (err)
 		return -errno;
-	*now = (uint64_t)tp.tv_sec * PSIO_NANOS_PER_SEC;
+	*now = (uint64_t)tp.tv_sec * XIO_NANOS_PER_SEC;
 	*now += (uint64_t)tp.tv_nsec;
 	return 0;
-#elif defined(PSIO_WIN)
+#elif defined(XIO_WIN)
 	LARGE_INTEGER Time, Frequency;
 	uint64_t time, frequency;
 
@@ -99,8 +99,8 @@ int psio_instant_now(uint64_t *now)
 	if (frequency == 0)
 		return -ERANGE;
 
-	*now = time / frequency * PSIO_NANOS_PER_SEC;
-	*now += time % frequency * PSIO_NANOS_PER_SEC / frequency;
+	*now = time / frequency * XIO_NANOS_PER_SEC;
+	*now += time % frequency * XIO_NANOS_PER_SEC / frequency;
 
 	return 0;
 #else
@@ -108,9 +108,9 @@ int psio_instant_now(uint64_t *now)
 #endif
 }
 
-int psio_sleep_ms(uint32_t ms)
+int xio_sleep_ms(uint32_t ms)
 {
-#ifdef PSIO_POSIX
+#ifdef XIO_POSIX
 	int err;
 	struct timespec rq, rm;
 
@@ -129,16 +129,16 @@ int psio_sleep_ms(uint32_t ms)
 			return -err;
 		}
 	}
-#elif defined(PSIO_WIN)
+#elif defined(XIO_WIN)
 	Sleep(ms);
 	return 0;
 #else
 #error UNSUPPORTED_PLATFORM
-#endif /* PSIO_POSIX */
+#endif /* XIO_POSIX */
 }
 
-#endif /* PSIO_IMPLEMENTATION */
+#endif /* XIO_IMPLEMENTATION */
 
 #undef UNSUPPORTED_PLATFORM
 
-#endif /* LIBPSIO_H_INCLUDE */
+#endif /* LIBXIO_H_INCLUDE */

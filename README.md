@@ -1,11 +1,11 @@
-# `libpsio` - Portable Synchronous Input/Output library in plain C11.
+# `libxio` - Cross platform I/O library in plain C11.
 
 ## Contributing
 
-If you want to contribute to `libpsio` to add a feature or improve the code contact
+If you want to contribute to `libxio` to add a feature or improve the code contact
 me at [alexandre@negrel.dev](mailto:alexandre@negrel.dev), open an
-[issue](https://github.com/negrel/libpsio/issues) or make a
-[pull request](https://github.com/negrel/libpsio/pulls).
+[issue](https://github.com/negrel/libxio/issues) or make a
+[pull request](https://github.com/negrel/libxio/pulls).
 
 ## :stars: Show your support
 

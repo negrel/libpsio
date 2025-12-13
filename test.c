@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#ifndef PSIO_IMPLEMENTATION
-#define PSIO_IMPLEMENTATION
+#ifndef XIO_IMPLEMENTATION
+#define XIO_IMPLEMENTATION
 #endif
-#include "libpsio.h"
+#include "libxio.h"
 
 #ifdef _WIN32
 #endif
@@ -25,14 +25,14 @@ static int test_sleep_ms(void)
 	int err;
 	uint64_t start, end;
 
-	err = psio_instant_now(&start);
+	err = xio_instant_now(&start);
 	if (err)
 		return err;
 
 	// Sleep.
-	psio_sleep_ms(100);
+	xio_sleep_ms(100);
 
-	err = psio_instant_now(&end);
+	err = xio_instant_now(&end);
 	if (err)
 		return err;
 

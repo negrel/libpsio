@@ -33,7 +33,7 @@ case "${1:-test}" in
 		;;
 
 	compile_flags.txt)
-		echo $CFLAGS -Isrc/ -DPSIO_IMPLEMENTATION -D_POSIX_C_SOURCE=200112L \
+		echo $CFLAGS -Isrc/ -DXIO_IMPLEMENTATION -D_POSIX_C_SOURCE=200112L \
 			| tr ' ' '\n' > compile_flags.txt
 		;;
 
