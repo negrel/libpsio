@@ -1,5 +1,5 @@
 .direnv/
 .envrc
 
-test
+tests/fs
 compile_flags.txt
